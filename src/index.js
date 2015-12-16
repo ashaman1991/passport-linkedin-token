@@ -1,14 +1,14 @@
 import { OAuth2Strategy, InternalOAuthError } from 'passport-oauth';
-
+import _  from 'lodash';
 /**
  * `Strategy` constructor.
- * The Google Plus authentication strategy authenticates requests by delegating to Google Plus using OAuth2 access tokens.
+ * The linkedin  authentication strategy authenticates requests by delegating to linkedin  using OAuth2 access tokens.
  * Applications must supply a `verify` callback which accepts a accessToken, refreshToken, profile and callback.
  * Callback supplying a `user`, which should be set to `false` if the credentials are not valid.
  * If an exception occurs, `error` should be set.
  *
  * Options:
- * - clientID          Identifies client to Google App
+ * - clientID          Identifies client to linkedin App
  * - clientSecret      Secret used to establish ownership of the consumer key
  * - passReqToCallback If need, pass req to verify callback
  *
@@ -16,29 +16,32 @@ import { OAuth2Strategy, InternalOAuthError } from 'passport-oauth';
  * @param {Function} _verify
  * @constructor
  * @example
- * passport.use(new GooglePlusTokenStrategy({
+ * passport.use(new linkedinPlusTokenStrategy({
  *   clientID: '123456789',
  *   clientSecret: 'shhh-its-a-secret'
  * }), function(req, accessToken, refreshToken, profile, next) {
- *   User.findOrCreate({googleId: profile.id}, function(error, user) {
+ *   User.findOrCreate({linkedInId: profile.id}, function(error, user) {
  *     next(error, user);
  *   });
  * });
  */
-export default class GooglePlusTokenStrategy extends OAuth2Strategy {
+export default
+class LinkedInTokenStrategy extends OAuth2Strategy {
   constructor(_options, _verify) {
     let options = _options || {};
     let verify = _verify;
 
-    options.authorizationURL = options.authorizationURL || 'https://accounts.google.com/o/oauth2/auth';
-    options.tokenURL = options.tokenURL || 'https://accounts.google.com/o/oauth2/token';
+    options.authorizationURL = options.authorizationURL || 'https://www.linkedin.com/uas/oauth2/authorization';
+    options.tokenURL = options.tokenURL || 'https://www.linkedin.com/uas/oauth2/accessToken';
+    options.scope = options.scope || ['r_basicprofile'];
+    options.profileFields = options.profileFields || null;
 
     super(options, verify);
 
-    this.name = 'google-plus-token';
-    this._accessTokenField = options.accessTokenField || 'access_token';
+    this.name = 'linkedin-token';
+    this._accessTokenField = options.accessTokenField || 'oauth2_access_token';
     this._refreshTokenField = options.refreshTokenField || 'refresh_token';
-    this._profileURL = options.profileURL || 'https://www.googleapis.com/plus/v1/people/me';
+    this._profileURL = 'https://api.linkedin.com/v1/people/~:(' + this._convertScopeToUserProfileFields(options.scope, options.profileFields) + ')?format=json';
     this._passReqToCallback = options.passReqToCallback;
 
     this._oauth2.useAuthorizationHeaderforGET(true);
@@ -54,64 +57,152 @@ export default class GooglePlusTokenStrategy extends OAuth2Strategy {
     let accessToken = (req.body && req.body[this._accessTokenField]) || (req.query && req.query[this._accessTokenField]);
     let refreshToken = (req.body && req.body[this._refreshTokenField]) || (req.query && req.query[this._refreshTokenField]);
 
-    if (!accessToken) return this.fail({message: `You should provide ${this._accessTokenField}`});
-
-    this._loadUserProfile(accessToken, (error, profile) => {
-      if (error) return this.error(error);
-
-      const verified = (error, user, info) => {
-        if (error) return this.error(error);
-        if (!user) return this.fail(info);
-
-        return this.success(user, info);
-      };
-
-      if (this._passReqToCallback) {
-        this._verify(req, accessToken, refreshToken, profile, verified);
-      } else {
-        this._verify(accessToken, refreshToken, profile, verified);
+    if (!accessToken) return this.fail({
+        message: `You should provide ${this._accessTokenField}`
       }
-    });
+    );
+
+    this._loadUserProfile(accessToken,
+      (error, profile) => {
+        if (error) return this.error(error);
+
+        const verified = (error, user, info) => {
+          if (error) return this.error(error);
+          if (!user) return this.fail(info);
+
+          return this.success(user, info);
+        };
+
+        if (this._passReqToCallback) {
+          this._verify(req, accessToken, refreshToken, profile, verified);
+        } else {
+          this._verify(accessToken, refreshToken, profile, verified);
+        }
+      });
   }
 
   /**
    * Parse user profile
-   * @param {String} accessToken Google OAuth2 access token
+   * @param {String} accessToken linkedin OAuth2 access token
    * @param {Function} done
    */
   userProfile(accessToken, done) {
     this._oauth2.get(this._profileURL, accessToken, (error, body, res) => {
-      if (error) {
+        if (error) {
+          try {
+            let errorJSON = JSON.parse(error.data);
+            return done(new InternalOAuthError(errorJSON.error.message, errorJSON.error.code));
+          } catch (_) {
+            return done(new InternalOAuthError('Failed to fetch user profile', error));
+          }
+        }
+
         try {
-          let errorJSON = JSON.parse(error.data);
-          return done(new InternalOAuthError(errorJSON.error.message, errorJSON.error.code));
-        } catch (_) {
-          return done(new InternalOAuthError('Failed to fetch user profile', error));
+          let json = JSON.parse(body);
+          let profile = {
+            provider: 'linkedin',
+            id: json.id,
+            displayName: json.formattedName || '',
+            name: {
+              familyName: json.lastName || '',
+              givenName: json.firstName || ''
+            },
+            emails: json.emailAddress ? [{value: json.emailAddress}] : [],
+            photos: [{
+              value: json.pictureUrl || ''
+            }],
+            _raw: body,
+            _json: _.omit(json, ['numConnections', 'positions', 'siteStandardProfileRequest', 'relationToViewer', 'apiStandardProfileRequest', 'distance', 'numConnectionsCapped'])
+          };
+
+          return done(null, profile);
+        }
+
+        catch (e) {
+          return done(e);
         }
       }
+    );
+  }
 
-      try {
-        let json = JSON.parse(body);
-        let profile = {
-          provider: 'google-plus',
-          id: json.id,
-          displayName: json.displayName || '',
-          name: {
-            familyName: (json.name && json.name.familyName) || '',
-            givenName: (json.name && json.name.givenName) || ''
-          },
-          emails: json.emails || [],
-          photos: [{
-            value: (json.image && json.image.url) || ''
-          }],
-          _raw: body,
-          _json: json
-        };
+  _convertScopeToUserProfileFields(scope, profileFields) {
+    let map = {
+      'r_basicprofile': [
+        'id',
+        'first-name',
+        'last-name',
+        'picture-url',
+        'picture-urls::(original)',
+        'formatted-name',
+        'maiden-name',
+        'phonetic-first-name',
+        'phonetic-last-name',
+        'formatted-phonetic-name',
+        'headline',
+        'location:(name,country:(code))',
+        'industry',
+        'distance',
+        'relation-to-viewer:(distance,connections)',
+        'current-share',
+        'num-connections',
+        'num-connections-capped',
+        'summary',
+        'specialties',
+        'positions',
+        'site-standard-profile-request',
+        'api-standard-profile-request:(headers,url)',
+        'public-profile-url'
+      ],
+      'r_emailaddress': ['email-address'],
+      'r_fullprofile': [
+        'last-modified-timestamp',
+        'proposal-comments',
+        'associations',
+        'interests',
+        'publications',
+        'patents',
+        'languages',
+        'skills',
+        'certifications',
+        'educations',
+        'courses',
+        'volunteer',
+        'three-current-positions',
+        'three-past-positions',
+        'num-recommenders',
+        'recommendations-received',
+        'mfeed-rss-url',
+        'following',
+        'job-bookmarks',
+        'suggestions',
+        'date-of-birth',
+        'member-url-resources:(name,url)',
+        'related-profile-views',
+        'honors-awards'
+      ]
+    };
 
-        return done(null, profile);
-      } catch (e) {
-        return done(e);
+    let fields = [];
+
+    // To obtain pre-defined field mappings
+    if (Array.isArray(scope) && profileFields === null) {
+      if (scope.indexOf('r_basicprofile') === -1) {
+        scope.unshift('r_basicprofile');
       }
-    });
+
+      scope.forEach((scope) => {
+        if (typeof map[scope] === 'undefined') return;
+
+        if (Array.isArray(map[scope])) {
+          Array.prototype.push.apply(fields, map[scope]);
+        } else {
+          fields.push(map[scope]);
+        }
+      });
+    } else if (Array.isArray(profileFields)) {
+      fields = profileFields;
+    }
+
+    return fields.join(',');
   }
 }

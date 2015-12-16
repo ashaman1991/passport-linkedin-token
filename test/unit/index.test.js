@@ -1,6 +1,6 @@
 import chai, { assert } from 'chai';
 import sinon from 'sinon';
-import GooglePlusTokenStrategy from '../../src/index';
+import LinkedInTokenStrategy from '../../src/index';
 import fakeProfile from '../fixtures/profile';
 
 const STRATEGY_CONFIG = {
@@ -11,30 +11,30 @@ const STRATEGY_CONFIG = {
 const BLANK_FUNCTION = () => {
 };
 
-describe('GooglePlusTokenStrategy:init', () => {
+describe('LinkedInTokenStrategy:init', () => {
   it('Should properly export Strategy constructor', () => {
-    assert.isFunction(GooglePlusTokenStrategy);
+    assert.isFunction(LinkedInTokenStrategy);
   });
 
   it('Should properly initialize', () => {
-    let strategy = new GooglePlusTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
+    let strategy = new LinkedInTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
 
-    assert.equal(strategy.name, 'google-plus-token');
+    assert.equal(strategy.name, 'linkedin-token');
     assert(strategy._oauth2._useAuthorizationHeaderForGET);
   });
 
   it('Should properly throw error on empty options', () => {
-    assert.throws(() => new GooglePlusTokenStrategy(), Error);
+    assert.throws(() => new LinkedInTokenStrategy(), Error);
   });
 });
 
-describe('GooglePlusTokenStrategy:authenticate', () => {
+describe('LinkedInTokenStrategy:authenticate', () => {
   describe('Authenticate without passReqToCallback', () => {
     let strategy;
 
     before(() => {
-      strategy = new GooglePlusTokenStrategy(STRATEGY_CONFIG, (accessToken, refreshToken, profile, next) => {
-        assert.equal(accessToken, 'access_token');
+      strategy = new LinkedInTokenStrategy(STRATEGY_CONFIG, (accessToken, refreshToken, profile, next) => {
+        assert.equal(accessToken, 'oauth2_access_token');
         assert.equal(refreshToken, 'refresh_token');
         assert.typeOf(profile, 'object');
         assert.typeOf(next, 'function');
@@ -54,7 +54,7 @@ describe('GooglePlusTokenStrategy:authenticate', () => {
         })
         .req(req => {
           req.body = {
-            access_token: 'access_token',
+            oauth2_access_token: 'oauth2_access_token',
             refresh_token: 'refresh_token'
           }
         })
@@ -71,7 +71,7 @@ describe('GooglePlusTokenStrategy:authenticate', () => {
         })
         .req(req => {
           req.query = {
-            access_token: 'access_token',
+            oauth2_access_token: 'oauth2_access_token',
             refresh_token: 'refresh_token'
           }
         })
@@ -83,7 +83,7 @@ describe('GooglePlusTokenStrategy:authenticate', () => {
         .fail(error => {
           assert.typeOf(error, 'object');
           assert.typeOf(error.message, 'string');
-          assert.equal(error.message, 'You should provide access_token');
+          assert.equal(error.message, 'You should provide oauth2_access_token');
           done();
         })
         .authenticate();
@@ -94,9 +94,9 @@ describe('GooglePlusTokenStrategy:authenticate', () => {
     let strategy;
 
     before(() => {
-      strategy = new GooglePlusTokenStrategy(Object.assign(STRATEGY_CONFIG, {passReqToCallback: true}), (req, accessToken, refreshToken, profile, next) => {
+      strategy = new LinkedInTokenStrategy(Object.assign(STRATEGY_CONFIG, {passReqToCallback: true}), (req, accessToken, refreshToken, profile, next) => {
         assert.typeOf(req, 'object');
-        assert.equal(accessToken, 'access_token');
+        assert.equal(accessToken, 'oauth2_access_token');
         assert.equal(refreshToken, 'refresh_token');
         assert.typeOf(profile, 'object');
         assert.typeOf(next, 'function');
@@ -116,7 +116,7 @@ describe('GooglePlusTokenStrategy:authenticate', () => {
         })
         .req(req => {
           req.body = {
-            access_token: 'access_token',
+            oauth2_access_token: 'oauth2_access_token',
             refresh_token: 'refresh_token'
           }
         })
@@ -125,22 +125,22 @@ describe('GooglePlusTokenStrategy:authenticate', () => {
   });
 });
 
-describe('GooglePlusTokenStrategy:userProfile', () => {
+describe('LinkedInTokenStrategy:userProfile', () => {
   it('Should properly fetch profile', done => {
-    let strategy = new GooglePlusTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
+    let strategy = new LinkedInTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
 
     sinon.stub(strategy._oauth2, 'get', (url, accessToken, next) => next(null, fakeProfile, null));
 
     strategy.userProfile('accessToken', (error, profile) => {
       if (error) return done(error);
 
-      assert.equal(profile.provider, 'google-plus');
-      assert.equal(profile.id, '103819813774047251222');
+      assert.equal(profile.provider, 'linkedin');
+      assert.equal(profile.id, '2C4dtW3rtF');
       assert.equal(profile.displayName, 'Andrew Orel');
       assert.equal(profile.name.familyName, 'Orel');
       assert.equal(profile.name.givenName, 'Andrew');
       assert.deepEqual(profile.emails, []);
-      assert.equal(profile.photos[0].value, 'https://lh3.googleusercontent.com/-XdUIqdMkCWA/AAAAAAAAAAI/AAAAAAAAAAA/4252rscbv5M/photo.jpg?sz=50');
+      assert.equal(profile.photos[0].value, 'https://media.licdn.com/mpr/mprx/0_WTL7meehtpYUJKGId_9KmIUm-0IEMzPII8ArmIoxDV0UQlkwLbz_hwYlplwNV-tFeCFlSsi');
       assert.equal(typeof profile._raw, 'string');
       assert.equal(typeof profile._json, 'object');
 
@@ -149,7 +149,7 @@ describe('GooglePlusTokenStrategy:userProfile', () => {
   });
 
   it('Should properly handle exception on fetching profile', done => {
-    let strategy = new GooglePlusTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
+    let strategy = new LinkedInTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
 
     sinon.stub(strategy._oauth2, 'get', (url, accessToken, done) => done(null, 'not a JSON', null));
 
@@ -161,7 +161,7 @@ describe('GooglePlusTokenStrategy:userProfile', () => {
   });
 
   it('Should properly handle wrong JSON on fetching profile', done => {
-    let strategy = new GooglePlusTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
+    let strategy = new LinkedInTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
 
     sinon.stub(strategy._oauth2, 'get', (url, accessToken, done) => done(new Error('ERROR'), 'not a JSON', null));
 
@@ -173,7 +173,7 @@ describe('GooglePlusTokenStrategy:userProfile', () => {
   });
 
   it('Should properly handle wrong JSON on fetching profile', done => {
-    let strategy = new GooglePlusTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
+    let strategy = new LinkedInTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
 
     sinon.stub(strategy._oauth2, 'get', (url, accessToken, done) => done({
       data: JSON.stringify({
@@ -193,13 +193,13 @@ describe('GooglePlusTokenStrategy:userProfile', () => {
   });
 
   it('Should properly parse profile with empty response', done => {
-    let strategy = new GooglePlusTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
+    let strategy = new LinkedInTokenStrategy(STRATEGY_CONFIG, BLANK_FUNCTION);
 
     sinon.stub(strategy._oauth2, 'get', (url, accessToken, done) => done(null, JSON.stringify({}), null));
 
     strategy.userProfile('accessToken', (error, profile) => {
       assert.deepEqual(profile, {
-        provider: 'google-plus',
+        provider: 'linkedin',
         id: undefined,
         displayName: '',
         name: {familyName: '', givenName: ''},
