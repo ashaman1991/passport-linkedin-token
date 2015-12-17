@@ -5,6 +5,7 @@ export default JSON.stringify({
     id: '3C4dtW3rtF',
     industry: 'Computer Software',
     lastName: 'Orel',
+    emailAddress: 'somemail@mail.test',
     numConnectionsCapped: false,
     pictureUrl: 'https://media.licdn.com/mpr/mprx/0_WTL7meehtpYUJKGId_9KmIUm-0IEMzPII8ArmIoxDV0UQlkwLbz_hwYlplwNV-tFeCFlSsi',
     pictureUrls: {_total: 1, values: [Object]},
