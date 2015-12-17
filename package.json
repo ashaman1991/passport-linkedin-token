@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "name": "passport-linkedin-token",
+  "name": "passport-linked-in-token",
   "description": "Passport strategy for authenticating with LinkedIn via OAuth2 access tokens",
   "main": "lib/index.js",
   "scripts": {
