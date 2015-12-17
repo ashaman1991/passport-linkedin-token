@@ -8,7 +8,7 @@ By plugging into Passport, LinkedIn authentication can be easily and unobtrusive
 ## Installation
 
 ```shell
-npm install passport-linkedin-token
+npm install passport-linked-in-token
 ```
 
 ## Usage
@@ -19,9 +19,9 @@ The LinkedIn authentication strategy authenticates users using a LinkedIn accoun
 The strategy requires a `verify` callback, which accepts these credentials and calls `next` providing a user, as well as `options` specifying a app ID and app secret.
 
 ```javascript
-var GooglePlusTokenStrategy = require('passport-linkedin-token');
+var LinkedInTokenStrategy = require('passport-linkedin-token');
 
-passport.use(new GooglePlusTokenStrategy({
+passport.use(new LinkedInTokenStrategy({
     clientID: LINKEDIN_ID,
     clientSecret: LINKEDIN_SECRET,
     scope: ['r_emailaddress', 'r_basicprofile'],
