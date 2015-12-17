@@ -1,12 +1,11 @@
 {
   "version": "0.1.0",
   "name": "passport-linkedin-token",
-  "description": "Passport strategy for authenticating with Google Plus via OAuth2 access tokens",
+  "description": "Passport strategy for authenticating with LinkedIn via OAuth2 access tokens",
   "main": "lib/index.js",
   "scripts": {
     "compile": "babel src --out-dir lib",
     "prepublish": "npm run compile",
-    "semantic-release": "semantic-release pre && npm publish && semantic-release post",
     "test": "babel-node ./node_modules/.bin/isparta cover _mocha"
   },
   "repository": {
@@ -25,13 +24,20 @@
     "email": "ashaman1991@gmail.com",
     "url": "https://github.com/ashaman1991"
   },
+  "contributors": [
+    {
+      "name": "ghaiklor",
+      "email": "ghaiklor@gmail.com",
+      "url": "https://www.facebook.com/ghaiklor"
+    }
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/ashaman1991/passport-linkedin-token/issues"
   },
-  "homepage": "https://github.com/ghaiklor/passport-linkedin-token",
+  "homepage": "https://github.com/ashaman1991/passport-linkedin-token",
   "dependencies": {
-    "lodash": "^3.10.1",
+    "lodash": "3.10.1",
     "passport-oauth": "1.0.0"
   },
   "devDependencies": {
@@ -39,11 +45,9 @@
     "babel-preset-es2015-node4": "2.0.2",
     "chai": "3.4.1",
     "chai-passport-strategy": "0.2.0",
-    "coveralls": "2.11.6",
     "cz-conventional-changelog": "1.1.5",
     "isparta": "4.0.0",
     "mocha": "2.3.4",
-    "semantic-release": "4.3.5",
     "sinon": "1.17.2"
   },
   "config": {

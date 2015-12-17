@@ -1,5 +1,6 @@
 import { OAuth2Strategy, InternalOAuthError } from 'passport-oauth';
 import _  from 'lodash';
+
 /**
  * `Strategy` constructor.
  * The linkedin  authentication strategy authenticates requests by delegating to linkedin  using OAuth2 access tokens.
@@ -41,7 +42,7 @@ class LinkedInTokenStrategy extends OAuth2Strategy {
     this.name = 'linkedin-token';
     this._accessTokenField = options.accessTokenField || 'oauth2_access_token';
     this._refreshTokenField = options.refreshTokenField || 'refresh_token';
-    this._profileURL = 'https://api.linkedin.com/v1/people/~:(' + this._convertScopeToUserProfileFields(options.scope, options.profileFields) + ')?format=json';
+    this._profileURL = 'https://api.linkedin.com/v1/people/~:(' + this._scopeToProfileFields(options.scope, options.profileFields) + ')?format=json';
     this._passReqToCallback = options.passReqToCallback;
 
     this._oauth2.useAuthorizationHeaderforGET(true);
@@ -83,7 +84,7 @@ class LinkedInTokenStrategy extends OAuth2Strategy {
 
   /**
    * Parse user profile
-   * @param {String} accessToken linkedin OAuth2 access token
+   * @param {String} accessToken LinkedIn OAuth2 access token
    * @param {Function} done
    */
   userProfile(accessToken, done) {
@@ -112,7 +113,7 @@ class LinkedInTokenStrategy extends OAuth2Strategy {
               value: json.pictureUrl || ''
             }],
             _raw: body,
-            _json: _.omit(json, ['numConnections', 'positions', 'siteStandardProfileRequest', 'relationToViewer', 'apiStandardProfileRequest', 'distance', 'numConnectionsCapped'])
+            _json: json
           };
 
           return done(null, profile);
@@ -125,7 +126,12 @@ class LinkedInTokenStrategy extends OAuth2Strategy {
     );
   }
 
-  _convertScopeToUserProfileFields(scope, profileFields) {
+  /**
+   * Convert LinkedIn scopes to list of profile fields
+   * @param {Array} scope LinkedIn scopes array
+   * @param {Array} profileFields
+   */
+  _scopeToProfileFields(scope, profileFields) {
     let map = {
       'r_basicprofile': [
         'id',
@@ -183,26 +189,25 @@ class LinkedInTokenStrategy extends OAuth2Strategy {
     };
 
     let fields = [];
+    let scopeFields = [];
 
-    // To obtain pre-defined field mappings
-    if (Array.isArray(scope) && profileFields === null) {
-      if (scope.indexOf('r_basicprofile') === -1) {
-        scope.unshift('r_basicprofile');
-      }
+    if (Array.isArray(scope)) {
+      scopeFields = scope.reduce((acc, scopeName) => {
+        if (typeof map[scopeName] === 'undefined') return acc;
 
-      scope.forEach((scope) => {
-        if (typeof map[scope] === 'undefined') return;
-
-        if (Array.isArray(map[scope])) {
-          Array.prototype.push.apply(fields, map[scope]);
-        } else {
-          fields.push(map[scope]);
+        if (Array.isArray(map[scopeName])) {
+          return acc.concat(map[scopeName]);
         }
-      });
-    } else if (Array.isArray(profileFields)) {
-      fields = profileFields;
+      }, []);
     }
 
-    return fields.join(',');
+    if (Array.isArray(profileFields)) {
+      fields = profileFields.slice();
+    }
+
+    return _.uniq(fields.concat(scopeFields)).join(',');
   }
+
 }
+
+

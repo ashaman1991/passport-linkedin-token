@@ -63,17 +63,11 @@ The request to this route should include GET or POST data with the keys `oauth2_
 ```
 GET /auth/linkedin?oauth2_access_token=<LINKEDIN_TOKEN>
 ```
-
-## Issues
-
-If you receive a `401 Unauthorized` error, it is most likely because you have wrong access token or not yet specified any application permissions.
-Once you refresh access token with new permissions, try to send this access token again.
-
 ## License
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Eugene Obrezkov
+Copyright (c) 2015 Anderew Orel
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
