@@ -3,7 +3,7 @@ import _  from 'lodash';
 
 /**
  * `Strategy` constructor.
- * The linkedin  authentication strategy authenticates requests by delegating to linkedin  using OAuth2 access tokens.
+ * The LinkedIn  authentication strategy authenticates requests by delegating to linkedin  using OAuth2 access tokens.
  * Applications must supply a `verify` callback which accepts a accessToken, refreshToken, profile and callback.
  * Callback supplying a `user`, which should be set to `false` if the credentials are not valid.
  * If an exception occurs, `error` should be set.
@@ -11,6 +11,8 @@ import _  from 'lodash';
  * Options:
  * - clientID          Identifies client to linkedin App
  * - clientSecret      Secret used to establish ownership of the consumer key
+ * - scope             LinkedIn scope
+ * - profileFields     LinkedIn profile fields, not included in scope (optional)
  * - passReqToCallback If need, pass req to verify callback
  *
  * @param {Object} _options
@@ -41,7 +43,7 @@ class LinkedInTokenStrategy extends OAuth2Strategy {
 
     this.name = 'linkedin-token';
     this._accessTokenField = options.accessTokenField || 'oauth2_access_token';
-    this._refreshTokenField = options.refreshTokenField || 'refresh_token';
+    this._refreshTokenField = options.refreshTokenField || 'refresh_token'; // never used, left for compatibility reasons
     this._profileURL = 'https://api.linkedin.com/v1/people/~:(' + this._scopeToProfileFields(options.scope, options.profileFields) + ')?format=json';
     this._passReqToCallback = options.passReqToCallback;
 

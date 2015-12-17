@@ -25,6 +25,7 @@ passport.use(new GooglePlusTokenStrategy({
     clientID: LINKEDIN_ID,
     clientSecret: LINKEDIN_SECRET,
     scope: ['r_emailaddress', 'r_basicprofile'],
+    profileFields: ['educations', 'courses'],
     passReqToCallback: true
 }, function(req, accessToken, refreshToken, profile, next) {
     User.findOrCreate({'linkedin.id': profile.id}, function(error, user) {
@@ -67,7 +68,7 @@ GET /auth/linkedin?oauth2_access_token=<LINKEDIN_TOKEN>
 
 The MIT License (MIT)
 
-Copyright (c) 2015 Anderew Orel
+Copyright (c) 2015 Andrew Orel
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
