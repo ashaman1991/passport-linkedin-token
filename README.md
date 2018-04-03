@@ -19,7 +19,7 @@ The LinkedIn authentication strategy authenticates users using a LinkedIn accoun
 The strategy requires a `verify` callback, which accepts these credentials and calls `next` providing a user, as well as `options` specifying a app ID and app secret.
 
 ```javascript
-var LinkedInTokenStrategy = require('passport-linkedin-token');
+var LinkedInTokenStrategy = require('passport-linked-in-token');
 
 passport.use(new LinkedInTokenStrategy({
     clientID: LINKEDIN_ID,
